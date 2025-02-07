@@ -21,6 +21,9 @@ score open to use these plugins.
 
 ### Get Handbells Used
 
+![get-handbells-used]
+(get-handbells-used.png)
+
 Analyzes all notes within the current selection, or the whole score if nothing
 is selected, and produces a list of handbells and handchimes used.
 
@@ -81,6 +84,9 @@ something else, you may get notes reported in the wrong octave.
 
 ### Set Selected Notes to Handbells
 
+![set-handbells]
+(set-handbells.png)
+
 Changes the note head for all of the selected notes (or all notes in the score
 if nothing is selected) to standard, and sets the color to black.  This is intended
 for changing handchime notes to handbells.  Any selected rests or other elements
@@ -91,6 +97,9 @@ or a color other than red or black, the plugin will do nothing.  Fix these manua
 or exclude them from your selection.
 
 ### Set Selected Notes to Handchimes (black)
+
+![set-handchimes-black]
+(set-handchimes-black.png)
 
 Changes the note head for all of the selected notes (or all notes in the score
 if nothing is selected) to diamond, and sets the color to black.  This is intended
@@ -105,6 +114,9 @@ or a color other than red or black, the plugin will do nothing.  Fix these manua
 or exclude them from your selection.
 
 ### Set Selected Notes to Handchimes (red)
+
+![set-handchimes-red]
+(set-handchimes-red.png)
 
 Changes the note head for all of the selected notes (or all notes in the score
 if nothing is selected) to diamond, and sets the color to red.  This is intended
