@@ -40,7 +40,8 @@ MuseScore {
                   categoryCode = "composing-arranging-tools";
             }
       }
-      
+
+      // BEGIN: Set up dialog box
       ApplicationWindow {
             id: dialogBox
             visible: false
@@ -81,7 +82,6 @@ MuseScore {
                   }
                   onClicked: closeDialog()
             }
-            
       }
       function closeDialog() {
             dialogBox.close();
@@ -110,10 +110,9 @@ MuseScore {
       function showInfo(msg) {
             showDialog("Information", "\u2139\uFE0F", msg);
       }
+      // END: Set up dialog box
       
-      // pluginType: "dialog" does not work in MS4; having a dialog window open prevents
-      // cmd() from working, so my workaround is to create an ApplicationWindow, then
-      // explicitly set its visible property to true after everything else has happened.
+      // BEGIN: Set up Handbells Used window
       ApplicationWindow {
             id: bellsUsedWindow
             title: "Handbells Used"
@@ -134,6 +133,7 @@ MuseScore {
                   }
             }
       }
+      // END: Set up Handbells Used window
       
       property string u_DOUBLEFLAT: String.fromCharCode(55348,56619); // U+1D12B
       property string u_FLAT: "\u266D";
@@ -327,7 +327,7 @@ MuseScore {
             // Finish
             curScore.endCmd()
             if (fullScore) {
-                  cmd("escape")
+                  cmd("escape");
             }
             (typeof(quit) === 'undefined' ? Qt.quit : quit)();
       }

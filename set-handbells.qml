@@ -2,10 +2,7 @@
  * SPDX-License-Identifier: GPL-3.0-only
  * MuseScore-Studio-CLA-applies
  *
- * MuseScore Studio
- * Music Composition & Notation
- *
- * Copyright (C) 2021 MuseScore Limited
+ * Handbell Notation plugins
  * Copyright (C) 2025 Andy Lyttle
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +20,7 @@
 
 import QtQuick 2.2
 import MuseScore 3.0
+import QtQuick.Controls 2.2
 
 MuseScore {
       version:  "1.0"
@@ -43,16 +41,81 @@ MuseScore {
             }
       }
 
+      // BEGIN: Set up dialog box
+      ApplicationWindow {
+            id: dialogBox
+            visible: false
+            flags: Qt.Dialog | Qt.WindowStaysOnTopHint
+            width: 410
+            height: 160
+            property var text: ""
+            property var icon: ""
+            Label {
+                  text: dialogBox.icon
+                  width: 84;
+                  font.pointSize: 72
+                  horizontalAlignment: Text.AlignHCenter
+                  anchors {
+                        top: parent.top
+                        left: parent.left
+                        margins: 14
+                  }
+            }
+            Label {
+                  id: dialogText
+                  text: dialogBox.text
+                  wrapMode: Text.WordWrap
+                  width: 280
+                  font.pointSize: 16
+                  anchors {
+                        top: parent.top
+                        right: parent.right
+                        margins: 20
+                  }
+            }
+            Button {
+                  text: "Ok"
+                  anchors {
+                        right: parent.right
+                        bottom: parent.bottom
+                        margins: 14
+                  }
+                  onClicked: closeDialog()
+            }
+      }
+      function closeDialog() {
+            dialogBox.close();
+            if(bellsUsedWindow.visible) {
+                  // Closing the dialog causes the bellsUsedWindow to move behind
+                  // the MuseScore window, so we need to bring it back to the front and give it focus
+                  bellsUsedWindow.raise();
+                  bellsUsedWindow.requestActivate();
+            }
+      }
+      function showDialog(title, icon, msg) {
+            dialogBox.title = title;
+            dialogBox.icon = icon;
+            dialogBox.text = msg;
+            if(dialogText.height > 90) {
+                  dialogBox.height = Math.min(600, 90 + dialogText.height);
+            }
+            dialogBox.visible = true;
+      }
+      function showError(msg) {
+            showDialog("Error", "\uD83D\uDED1", msg);
+      }
+      function showWarning(msg) {
+            showDialog("Warning", "\u26A0\uFE0F", msg);
+      }
+      function showInfo(msg) {
+            showDialog("Information", "\u2139\uFE0F", msg);
+      }
+      // END: Set up dialog box
+
       property string color_BLACK : "#000000"
-      property string color_RED : "#ff0000"
 
       function testSanity(note) {
             if(note.headGroup != NoteHeadGroup.HEAD_DIAMOND && note.headGroup != NoteHeadGroup.HEAD_NORMAL) {
-                  console.log("Selection includes note head that is not what we expect for either handbells or handchimes.");
-                  return false;
-            }
-            if(note.color != color_BLACK && note.color != color_RED) {
-                  console.log("Selection includes a note color that is not what we expect for either handbells or handchimes.");
                   return false;
             }
             return true;
@@ -70,26 +133,30 @@ MuseScore {
                   }
             }
       }
-      function updateStem(stem) {
+      function updateStem(stem) { // also for hooks and beams
             stem.color = color_BLACK;
       }
 
-      onRun: {
+      function setHandbells() {
             // Get current selection, or Select All
-            var fullScore = !curScore.selection.elements.length
+            var fullScore = !curScore.selection.elements.length;
             if (fullScore) {
-                  cmd("select-all")
+                  cmd("select-all");
             }
-            curScore.startCmd()
-            
-            // Sanity check: do all selected notes currently have an expected note head group and color?
-            var sane = true;
+            curScore.startCmd();
+      
+            // Sanity check: do all selected notes currently have an expected note head group?
+            var numUnknown = 0;
             for(var i in curScore.selection.elements) {
                   if (curScore.selection.elements[i].type == Element.NOTE)
                         if (!testSanity(curScore.selection.elements[i]))
-                              sane = false;
+                              numUnknown++;
             }
-            if(sane) {
+            if(numUnknown == 1) {
+                  showError("Found a note whose note head is neither Standard nor Diamond.  Either change the note head, or exclude it from the selection if it's for a different instrument.");
+            } else if(numUnknown > 1) {
+                  showError("Found " + numUnknown + " notes whose note heads are neither Standard nor Diamond.  Either change the note heads, or exclude them from the selection if they're for a different instrument.");
+            } else {
                   for(var i in curScore.selection.elements) {
                         if (curScore.selection.elements[i].type == Element.NOTE)
                               updateNote(curScore.selection.elements[i]);
@@ -105,8 +172,12 @@ MuseScore {
             // Finish
             curScore.endCmd()
             if (fullScore) {
-                  cmd("escape")
+                  cmd("escape");
             }
             (typeof(quit) === 'undefined' ? Qt.quit : quit)();
+      }
+      
+      onRun: {
+            setHandbells();
       }
 }
