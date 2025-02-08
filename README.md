@@ -5,7 +5,8 @@ in MuseScore Studio.
 
 ## Installation
 
-Place the "handbell-notation" folder inside your Plugins folder.  This is normally
+Click the green "&lt;&gt; Code" button and click "Download Zip", unzip it, and
+move the "handbell-notation" folder inside your Plugins folder.  This is normally
 in your Documents folder under MuseScore3 or MuseScore4.
 
 Then, in MuseScore, choose "Manage Plugins…" or "Plugin Manager…" from the Plugins
@@ -123,9 +124,10 @@ you'll get an error; fix these manually, or exclude them from your selection.
 
 ## Version compatibility
 
-These plugins are intended to work with both MuseScore 3.x and MuseScore 4.x, but
-have only been tested in 3.6.2 and 4.4.  It is very likely that they will break
-in a future version of MuseScore, and will need to be rewritten.
+These plugins are intended to work with both MuseScore 3.x and MuseScore 4.x on
+Windows, Mac and Linux, but have only been tested in 3.6.2 and 4.4 on Mac.
+As with most plugins, it is very likely that they will break in a future version
+of MuseScore, and will need to be rewritten.
 
 Known differences between versions:
 - In MuseScore 3.x, all plugins will appear under a "Handbell Notation" submenu
