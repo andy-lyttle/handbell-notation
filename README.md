@@ -87,43 +87,39 @@ something else, you may get notes reported in the wrong octave.
 
 Changes the note head for all of the selected notes (or all notes in the score
 if nothing is selected) to standard, and sets the color to black.  This is intended
-for changing handchime notes to handbells.  Any selected rests or other elements
-are ignored.
+for changing handchime notes to handbells.
+
+Dots and accidentals belonging to the selected notes will also be updated, but
+stems, hooks and beams will only be updated if they are included in the selection.
+They will be included if you select a range, but not if you select only individual
+note heads.  Rests and other elements, even if selected, will be ignored.
 
 If any of the selected notes use some note head other that standard or diamond,
-or a color other than red or black, the plugin will do nothing.  Fix these manually,
-or exclude them from your selection.
+you'll get an error; fix these manually, or exclude them from your selection.
 
-### Set Selected Notes to Handchimes (black)
+### Set Selected Notes to Handchimes
 
-<img src="set-handchimes-black.png" alt="set-handchimes-black" width=256>
+<img src="set-handchimes.png" alt="set-handchimes" width=256>
 
 Changes the note head for all of the selected notes (or all notes in the score
-if nothing is selected) to diamond, and sets the color to black.  This is intended
-for changing handbell notes to handchimes.  Any selected rests or other elements
-are ignored.
+if nothing is selected) to diamond, and sets the color to red (if you like).
+This is intended for changing handbell notes to handchimes.
 
-I like using red for handchime notes, but if you will be printing in black-and-white,
-you may want to use black.
+The first time you use the plugin in a particular score, you will be asked to
+choose your preferred color.  Bright red is best for printing (it looks different
+on paper) but can be hard to look at on a screen, so you can also choose a darker
+red if you prefer, or choose black if you won't be printing in color.  Your choice
+is saved as a custom field called "handchimeColor" in Project Properties (or
+Score Properties in MuseScore 3), so if you change your mind later, you can edit
+the hex value there or simply delete the field if you want to be asked again.
 
-If any of the selected notes use some note head other that standard or diamond,
-or a color other than red or black, the plugin will do nothing.  Fix these manually,
-or exclude them from your selection.
-
-### Set Selected Notes to Handchimes (red)
-
-<img src="set-handchimes-red.png" alt="set-handchimes-red" width=256>
-
-Changes the note head for all of the selected notes (or all notes in the score
-if nothing is selected) to diamond, and sets the color to red.  This is intended
-for changing handbell notes to handchimes.  Any selected rests or other elements
-are ignored.
-
-This shade of red is best for printing, but looks a bit obnoxious on a screen.
+Dots and accidentals belonging to the selected notes will also be updated, but
+stems, hooks and beams will only be updated if they are included in the selection.
+They will be included if you select a range, but not if you select only individual
+note heads.  Rests and other elements, even if selected, will be ignored.
 
 If any of the selected notes use some note head other that standard or diamond,
-or a color other than red or black, the plugin will do nothing.  Fix these manually,
-or exclude them from your selection.
+you'll get an error; fix these manually, or exclude them from your selection.
 
 ## Version compatibility
 

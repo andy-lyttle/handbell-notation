@@ -40,10 +40,79 @@ MuseScore {
                   categoryCode = "composing-arranging-tools";
             }
       }
+
+      // BEGIN: Set up dialog box
+      ApplicationWindow {
+            id: dialogBox
+            visible: false
+            flags: Qt.Dialog | Qt.WindowStaysOnTopHint
+            width: 410
+            height: 160
+            property var text: ""
+            property var icon: ""
+            Label {
+                  text: dialogBox.icon
+                  width: 84;
+                  font.pointSize: 72
+                  horizontalAlignment: Text.AlignHCenter
+                  anchors {
+                        top: parent.top
+                        left: parent.left
+                        margins: 14
+                  }
+            }
+            Label {
+                  id: dialogText
+                  text: dialogBox.text
+                  wrapMode: Text.WordWrap
+                  width: 280
+                  font.pointSize: 16
+                  anchors {
+                        top: parent.top
+                        right: parent.right
+                        margins: 20
+                  }
+            }
+            Button {
+                  text: "Ok"
+                  anchors {
+                        right: parent.right
+                        bottom: parent.bottom
+                        margins: 14
+                  }
+                  onClicked: closeDialog()
+            }
+      }
+      function closeDialog() {
+            dialogBox.close();
+            if(bellsUsedWindow.visible) {
+                  // Closing the dialog causes the bellsUsedWindow to move behind
+                  // the MuseScore window, so we need to bring it back to the front and give it focus
+                  bellsUsedWindow.raise();
+                  bellsUsedWindow.requestActivate();
+            }
+      }
+      function showDialog(title, icon, msg) {
+            dialogBox.title = title;
+            dialogBox.icon = icon;
+            dialogBox.text = msg;
+            if(dialogText.height > 90) {
+                  dialogBox.height = Math.min(600, 90 + dialogText.height);
+            }
+            dialogBox.visible = true;
+      }
+      function showError(msg) {
+            showDialog("Error", "\uD83D\uDED1", msg);
+      }
+      function showWarning(msg) {
+            showDialog("Warning", "\u26A0\uFE0F", msg);
+      }
+      function showInfo(msg) {
+            showDialog("Information", "\u2139\uFE0F", msg);
+      }
+      // END: Set up dialog box
       
-      // pluginType: "dialog" does not work in MS4; having a dialog window open prevents
-      // cmd() from working, so my workaround is to create an ApplicationWindow, then
-      // explicitly set its visible property to true after everything else has happened.
+      // BEGIN: Set up Handbells Used window
       ApplicationWindow {
             id: bellsUsedWindow
             title: "Handbells Used"
@@ -64,6 +133,7 @@ MuseScore {
                   }
             }
       }
+      // END: Set up Handbells Used window
       
       property string u_DOUBLEFLAT: String.fromCharCode(55348,56619); // U+1D12B
       property string u_FLAT: "\u266D";
@@ -196,29 +266,25 @@ MuseScore {
             for(var i in curScore.selection.elements) {
                   if (curScore.selection.elements[i].type == Element.NOTE) {
                         var bell = getNote(curScore.selection.elements[i]);
-                        if(bell.bellType) {
-                              
-                              if(!allUsed[bell.bellType][bell.notePitch]) {
-                                    allUsed[bell.bellType][bell.notePitch] = {
-                                          "canonicalName": bell.noteCanonicalName,
-                                          "notes": {},
-                                          "count": 0
-                                    };
-                              }
-                              allUsed[bell.bellType][bell.notePitch].notes[bell.noteName] = bell.accidentalValue;
-                              allUsed[bell.bellType][bell.notePitch].count++;
-                              if(bell.noteName == bell.noteCanonicalName) {
-                                    console.log(bell.bellType + " " + bell.noteName);
-                              } else {
-                                    console.log(bell.bellType + " " + bell.noteName + " (" + bell.noteCanonicalName + ")");
-                              }
-                              
+                        if(!allUsed[bell.bellType][bell.notePitch]) {
+                              allUsed[bell.bellType][bell.notePitch] = {
+                                    "canonicalName": bell.noteCanonicalName,
+                                    "notes": {},
+                                    "count": 0
+                              };
+                        }
+                        allUsed[bell.bellType][bell.notePitch].notes[bell.noteName] = bell.accidentalValue;
+                        allUsed[bell.bellType][bell.notePitch].count++;
+                        if(bell.noteName == bell.noteCanonicalName) {
+                              console.log("Found " + bell.bellType + " note " + bell.noteName);
+                        } else {
+                              console.log("Found " + bell.bellType + " note " + bell.noteName + " (" + bell.noteCanonicalName + ")");
                         }
                   }
             }
 
             text1.text = ""
-            for(var bellType in allUsed) { // Handbells and Handchimes
+            for(var bellType in allUsed) { // Handbells, Handchimes, and possibly Unknown
                   var numUsed = Object.keys(allUsed[bellType]).length;
                   if(numUsed) { // Do any notes exist of this type?
                         text1.text += bellType + " Used: " + numUsed + "\n";
@@ -240,19 +306,29 @@ MuseScore {
                   
             }
             if(text1.text == "") {
-                  text1.text += "Something was selected (possibly a rest) but not any notes.\n";
-                  text1.text += "Either select some notes, or make sure nothing is selected.\n";
-                  text1.text += "\n";
-                  text1.text += "If you're sure you selected some notes,\n";
-                  text1.text += "something may have gone wrong.\n";
+                  // No notes were found within the selection
+                  if(fullScore) {
+                        showWarning("No notes were found in the score.");
+                  } else {
+                        showWarning("Something was selected, but the selection didn't include any notes.  Either select the range of notes to analyze, or be careful not to have anything selected.");
+                  }
+            } else {
+                  bellsUsedWindow.visible = true;
+                  
+                  // Any Unknown notes?
+                  var numUnknown = Object.keys(allUsed["Unknown"]).length;
+                  if(numUnknown==1) {
+                        showInfo("Found a note whose note head is neither Standard nor Diamond.  You may want to change the note head, or exclude it from the selection if it's for a different instrument.");
+                  } else if(numUnknown > 1) {
+                        showInfo("Found " + numUnknown + " notes whose note heads are neither Standard nor Diamond.  You may want to change the note heads, or exclude them from the selection if they're for a different instrument.");
+                  }
             }
-            
+
             // Finish
             curScore.endCmd()
             if (fullScore) {
-                  cmd("escape")
+                  cmd("escape");
             }
-            bellsUsedWindow.visible = true;
             (typeof(quit) === 'undefined' ? Qt.quit : quit)();
       }
 }
