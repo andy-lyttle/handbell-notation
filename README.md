@@ -20,6 +20,19 @@ score open to use these plugins.
 
 ## Usage
 
+### Find Handbells On the Wrong Staff
+
+<img src="find-handbells-wrong.png" alt="find-handbells-wrong" width=256>
+
+Analyzes all notes within the current selection, or the whole score if nothing
+is selected, and identifies any notes written on C5 or below in the treble
+clef or D5 and above in the bass clef.  All bad notes are marked in bright
+green, and a report is presented with a list of the bad notes found.
+
+Sharps and flats are ignored, so C♯5 is expected to be in bass clef and D♭5
+is expected to be in treble clef, even though these are enharmonically
+equivalent.
+
 ### Get Handbells Used
 
 <img src="get-handbells-used.png" alt="get-handbells-used" width=256>
