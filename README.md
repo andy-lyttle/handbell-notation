@@ -135,8 +135,8 @@ transposing by one octave.  These are the default settings in each version.  How
 in both versions we also try to verify this by checking the vertical position of the
 note on the staff, and adjusting as needed.
 - The "Find Handbells On the Wrong Staff" plugin implements a workaround for a bug
-in MuseScore 3 which caused `curScore.staves` to fail.  The bug was fixed in MuseScore
-4.
+in MuseScore 3 which caused `curScore.staves` to fail.  The bug was fixed in
+MuseScore 4.
 
 ## Artwork
 Handbell artwork © 2007-2012 Tena Luben, A Familiar Ring  
