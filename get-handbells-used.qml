@@ -135,14 +135,14 @@ MuseScore {
       }
       // END: Set up Handbells Used window
       
-      property string u_DOUBLEFLAT: String.fromCharCode(55348,56619); // U+1D12B
-      property string u_FLAT: "\u266D";
-      property string u_NATURAL: "";
-      property string u_SHARP: "\u266F";
-      property string u_DOUBLESHARP: String.fromCharCode(55348, 56618); // U+1D12A
-      property string tpc_Names: "FCGDAEB";
-      property var tpc_Accidentals: [u_DOUBLEFLAT, u_FLAT, u_NATURAL, u_SHARP, u_DOUBLESHARP];
-      property var canonical_Names: ["C", "C\u266F", "D", "D\u266F", "E", "F", "F\u266F", "G", "G\u266F", "A", "A\u266F", "B"];
+      property string u_DOUBLEFLAT: String.fromCharCode(55348,56619) // U+1D12B
+      property string u_FLAT: "\u266D"
+      property string u_NATURAL: ""
+      property string u_SHARP: "\u266F"
+      property string u_DOUBLESHARP: String.fromCharCode(55348, 56618) // U+1D12A
+      property string tpc_Names: "FCGDAEB"
+      property var tpc_Accidentals: [u_DOUBLEFLAT, u_FLAT, u_NATURAL, u_SHARP, u_DOUBLESHARP]
+      property var canonical_Names: ["C", "C\u266F", "D", "D\u266F", "E", "F", "F\u266F", "G", "G\u266F", "A", "A\u266F", "B"]
 
       function getNote(note) {
             // Handbells are a transposing instrument, so what is written as middle-C
@@ -325,7 +325,7 @@ MuseScore {
             }
 
             // Finish
-            curScore.endCmd()
+            curScore.endCmd();
             if (fullScore) {
                   cmd("escape");
             }
