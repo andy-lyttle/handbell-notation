@@ -143,7 +143,7 @@ MuseScore {
       property string tpc_Names: "FCGDAEB"
       property var tpc_Accidentals: [u_DOUBLEFLAT, u_FLAT, u_NATURAL, u_SHARP, u_DOUBLESHARP]
       property var canonical_Names: ["C", "C\u266F", "D", "D\u266F", "E", "F", "F\u266F", "G", "G\u266F", "A", "A\u266F", "B"]
-
+      
       function getNote(note) {
             // Handbells are a transposing instrument, so what is written as middle-C
             // (which would be C4 on a piano unless you're Yamaha for some reason) sounds
@@ -177,13 +177,13 @@ MuseScore {
             // one instrument, then we know that must be the correct one, otherwise we
             // have to figure it out for each note (slower) to correctly handle any
             // instrument changes.
+            var chord = note.parent;
+            var segment = chord.parent;
             var staff = note.staff;
             var part = staff.part;
             if(part.instruments.length == 1) {
                   var instrument = part.instruments[0];
             } else {
-                  var chord = note.parent;
-                  var segment = chord.parent;
                   var instrument = part.instrumentAtTick(segment.tick);
             }
 
@@ -222,6 +222,34 @@ MuseScore {
             // which is what we want.
             var noteOctave = Math.floor((writtenPitch - noteAccidentalValue) / 12);
             
+            // We're still not completely sure about octave transposing instruments, so
+            // let's check the note's vertical position on the staff to see if we can
+            // confirm our guess that way.  We only correctly support treble and bass
+            // clefs here.
+            var posY = Math.round(note.posY * 10) / 10; // Fix floating-point glitches like 3.5000000000000004
+            var letterValue = (noteLetter.charCodeAt(0) - 4) % 7; // Convert note letter to 0-6
+            var staffOffset = (noteOctave * 7 + letterValue) / 2; // C0 = 0, D0 = 0.5, E0 = 1, F0 = 1.5, etc...
+            var clef = undefined;
+            if(posY == 22.5 - staffOffset) { // Treble clef
+                  clef = "Treble";
+            } else if(posY == 26 - staffOffset) { // Treble 8va
+                  transpositionOffset += 12;
+                  clef = "Treble";
+            } else if(posY == 19 - staffOffset) { // Treble 8vb
+                  transpositionOffset -= 12;
+                  clef = "Treble";
+            } else if(posY == 16.5 - staffOffset) { // Bass clef
+                  clef = "Bass";
+            } else if(posY == 20 - staffOffset) { // Bass 8va
+                  transpositionOffset += 12;
+                  clef = "Bass";
+            } else if(posY == 13 - staffOffset) { // Bass 8vb
+                  transpositionOffset -= 12;
+                  clef = "Bass";
+            }
+            writtenPitch = note.pitch - transpositionOffset;
+            noteOctave = Math.floor((writtenPitch - noteAccidentalValue) / 12);
+            
             // Now, concatenate everything together to get a human-readable name like Cb5
             // (but using a fancy Unicode flat symbol instead of a lower-case letter "b").
             // Double flats and double sharps are supported too, but no other weird
@@ -240,13 +268,24 @@ MuseScore {
             var bellType = "Unknown";
             if(note.headGroup == NoteHeadGroup.HEAD_NORMAL) bellType = "Handbells";
             if(note.headGroup == NoteHeadGroup.HEAD_DIAMOND) bellType = "Handchimes";
-                        
+            
+            //console.log("Found " + bellType + " note " + noteName);
+            //console.log("  Transposed MIDI pitch = " + note.pitch);
+            //console.log("  Written MIDI pitch = " + writtenPitch + " + transposition offset = " + transpositionOffset);
+            //console.log("  Canonical name = " + noteCanonicalName);
+            //console.log("  Instrument " + instrument.longName + " (" + instrument.instrumentId + ")");
+            //console.log("  Instrument ID = " + instrument.instrumentId);
+            
             return {
                   "notePitch": writtenPitch,
                   "noteName": noteName,
                   "accidentalValue": noteAccidentalValue,
                   "noteCanonicalName": noteCanonicalName,
-                  "bellType": bellType
+                  "letterValue": letterValue,
+                  "noteOctave": noteOctave,
+                  "clef": clef, // may be undefined or inaccurate
+                  "bellType": bellType,
+                  "tick": segment.tick
             };
       }
 
@@ -323,7 +362,7 @@ MuseScore {
                         showInfo("Found " + numUnknown + " notes whose note heads are neither Standard nor Diamond.  You may want to change the note heads, or exclude them from the selection if they're for a different instrument.");
                   }
             }
-
+            
             // Finish
             curScore.endCmd();
             if (fullScore) {

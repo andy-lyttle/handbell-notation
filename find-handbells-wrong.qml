@@ -270,14 +270,15 @@ MuseScore {
             if(note.headGroup == NoteHeadGroup.HEAD_NORMAL) bellType = "Handbells";
             if(note.headGroup == NoteHeadGroup.HEAD_DIAMOND) bellType = "Handchimes";
             
-            console.log("Found " + bellType + " note " + noteName);
-            console.log("  Transposed MIDI pitch = " + note.pitch);
-            console.log("  Written MIDI pitch = " + writtenPitch + " + transposition offset = " + transpositionOffset);
-            console.log("  Canonical name = " + noteCanonicalName);
-            console.log("  Instrument " + instrument.longName + " (" + instrument.instrumentId + ")");
-            console.log("  Instrument ID = " + instrument.instrumentId);
+            //console.log("Found " + bellType + " note " + noteName);
+            //console.log("  Transposed MIDI pitch = " + note.pitch);
+            //console.log("  Written MIDI pitch = " + writtenPitch + " + transposition offset = " + transpositionOffset);
+            //console.log("  Canonical name = " + noteCanonicalName);
+            //console.log("  Instrument " + instrument.longName + " (" + instrument.instrumentId + ")");
+            //console.log("  Instrument ID = " + instrument.instrumentId);
             
             return {
+                  "notePitch": writtenPitch,
                   "noteName": noteName,
                   "accidentalValue": noteAccidentalValue,
                   "noteCanonicalName": noteCanonicalName,
@@ -399,7 +400,7 @@ MuseScore {
             }
             
             // Finish
-            curScore.endCmd()
+            curScore.endCmd();
             if (fullScore) {
                   cmd("escape");
             }

@@ -132,7 +132,6 @@ MuseScore {
                         margins: 10
                   }
             }
-      
             Label {
                   text: "Best for printing:"
                   font.pointSize: 16

@@ -70,30 +70,12 @@ Handbells are a transposing instrument; they sound one octave higher than writte
 so a note written as C4 (middle-C) will sound like C5, and should be listed as C5.
 In MuseScore 4.x, the "Hand Bells" instrument is set up this way by default, but
 in MuseScore 3.x it isn't.  And some of us prefer to use the "Piano" instrument
-for writing handbell music, which is also non-transposing.
-
-The plugin tries to do the right thing in all these cases, but due to some bizarre
-limitations of MuseScore's plugin API, it has to make some guesses about details
-it doesn't have access to, and if it guesses wrong, the report might list your
-notes in the wrong octave.
-
-The desired behavior is to report the notes as one octave higher than written,
-regardless of which instrument is used or which octave they sound like.  For
-example, if a note is written as middle-C (on the first ledger line above the
-bass clef), it should be reported as C5.
-
-The actual behavior is to get the pitch the note sounds like, and report that pitch
-as-is if you're using the "Hand Bells" instrument in MuseScore 4, or one octave
-higher in all other cases (e.g. "Hand Bells" in MuseScore 3, or "Piano" in either
-version).  For example, if you're using "Hand Bells" in MuseScore 4 with default
-settings, a note written as middle-C will sound as C5, and will be reported as C5.
-If you're using "Piano", or "Hand Bells" in MuseScore 3, a note written as middle-C
-will sound as C4, and the plugin will add an octave to report it as C5.  However,
-if you manually change the octave in Staff/Part Properties, the plugin won't know
-what the written pitch is and will report it incorrectly.
-
-This should be good enough for the most common scenarios, but if you're doing
-something else, you may get notes reported in the wrong octave.
+for writing handbell music, which is also non-transposing.  The plugin tries to
+do the right thing in all cases, which is to go by one octave higher than the
+written pitch on the staff, regardless of the instrument used or the transposition
+settings.  Due to some bizarre limitations of MuseScore's plugin API, figuring this
+out is is really complicated and it could break in very strange ways if you're
+doing something weird, but so far it works correctly in my testing.
 
 ### Set Selected Notes to Handbells
 
@@ -149,7 +131,12 @@ under the Plugins menu.  In MuseScore 4.x, they appear under "Composing/arrangin
 - Graphics are not used by MuseScore 3.x.
 - In MuseScore 3.x, the "Hand Bells" instrument is assumed to be non-transposing,
 just like "Piano".  In MuseScore 4.x, the "Hand Bells" instrument is assumed to be
-transposing by one octave.  These are the default settings in each version.
+transposing by one octave.  These are the default settings in each version.  However,
+in both versions we also try to verify this by checking the vertical position of the
+note on the staff, and adjusting as needed.
+- The "Find Handbells On the Wrong Staff" plugin implements a workaround for a bug
+in MuseScore 3 which caused `curScore.staves` to fail.  The bug was fixed in MuseScore
+4.
 
 ## Artwork
 Handbell artwork © 2007-2012 Tena Luben, A Familiar Ring  
