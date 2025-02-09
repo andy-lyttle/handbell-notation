@@ -24,7 +24,7 @@ import QtQuick.Controls 2.2
 
 MuseScore {
       version:  "1.0"
-      description: "Gets a list of handbells or handchimes used within the selection, and presents a list as text.  Does NOT insert a chart into your score, sorry.  KNOWN ISSUE: might pick the wrong octave if it guesses wrong about using a transposing instrument, due to limitations of MuseScore's plugin API.  Also, you must use the mouse to close the window that pops up, not the keyboard."
+      description: "Gets a list of handbells or handchimes used within the selection, and presents a list as text.  Does NOT insert a chart into your score, sorry.  NOTE: You must use the mouse to close the window that pops up, not the keyboard."
       menuPath: "Plugins.Handbell Notation.Get Handbells Used" // Ignored in MuseScore 4
 
       // These special comments are parsed by MuseScore 4.4, but ignored by older versions:
