@@ -170,7 +170,7 @@ MuseScore {
             }
 
             // Finish
-            curScore.endCmd()
+            curScore.endCmd();
             if (fullScore) {
                   cmd("escape");
             }

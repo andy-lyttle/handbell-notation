@@ -132,7 +132,6 @@ MuseScore {
                         margins: 10
                   }
             }
-      
             Label {
                   text: "Best for printing:"
                   font.pointSize: 16
@@ -307,7 +306,7 @@ MuseScore {
             }
 
             // Finish
-            curScore.endCmd()
+            curScore.endCmd();
             if (fullScore) {
                   cmd("escape");
             }

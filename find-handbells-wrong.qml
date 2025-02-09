@@ -24,19 +24,19 @@ import QtQuick.Controls 2.2
 
 MuseScore {
       version:  "1.0"
-      description: "Gets a list of handbells or handchimes used within the selection, and presents a list as text.  Does NOT insert a chart into your score, sorry.  KNOWN ISSUE: might pick the wrong octave if it guesses wrong about using a transposing instrument, due to limitations of MuseScore's plugin API.  Also, you must use the mouse to close the window that pops up, not the keyboard."
-      menuPath: "Plugins.Handbell Notation.Get Handbells Used" // Ignored in MuseScore 4
+      description: "Checks the selected notes to see if any are on the wrong staff for handbells."
+      menuPath: "Plugins.Find Handbells On the Wrong Staff" // Ignored in MuseScore 4
 
       // These special comments are parsed by MuseScore 4.4, but ignored by older versions:
-      //4.4 title: "Get Handbells Used"
-      //4.4 thumbnailName: "get-handbells-used.png"
+      //4.4 title: "Find Handbells On the Wrong Staff"
+      //4.4 thumbnailName: "find-handbells-wrong.png"
       //4.4 categoryCode: "composing-arranging-tools"
       
       // The same thing for MuseScore 4.0-4.3, ignored by 4.4:
       Component.onCompleted: {
             if (mscoreMajorVersion == 4 && mscoreMinorVersion <= 3) {
-                  title = "Get Handbells Used";
-                  thumbnailName = "get-handbells-used.png";
+                  title = "Find Handbells On the Wrong Staff";
+                  thumbnailName = "find-handbells-wrong.png";
                   categoryCode = "composing-arranging-tools";
             }
       }
@@ -112,10 +112,10 @@ MuseScore {
       }
       // END: Set up dialog box
       
-      // BEGIN: Set up Handbells Used window
+      // BEGIN: Set up results window
       ApplicationWindow {
-            id: bellsUsedWindow
-            title: "Handbells Used"
+            id: resultsWindow
+            title: "Handbells On the Wrong Staff"
             width: 600
             height: 500
 
@@ -133,7 +133,7 @@ MuseScore {
                   }
             }
       }
-      // END: Set up Handbells Used window
+      // END: Set up results window
       
       property string u_DOUBLEFLAT: String.fromCharCode(55348,56619) // U+1D12B
       property string u_FLAT: "\u266D"
@@ -143,6 +143,7 @@ MuseScore {
       property string tpc_Names: "FCGDAEB"
       property var tpc_Accidentals: [u_DOUBLEFLAT, u_FLAT, u_NATURAL, u_SHARP, u_DOUBLESHARP]
       property var canonical_Names: ["C", "C\u266F", "D", "D\u266F", "E", "F", "F\u266F", "G", "G\u266F", "A", "A\u266F", "B"]
+      property string color_BAD: "#00ff00"
       
       function getNote(note) {
             // Handbells are a transposing instrument, so what is written as middle-C
@@ -288,7 +289,62 @@ MuseScore {
                   "tick": segment.tick
             };
       }
+      
+      function getSelectedNotes() {
+            var selectedNotes = [];
+            for(var i in curScore.selection.elements) {
+                  if (curScore.selection.elements[i].type == Element.NOTE) {
+                        var note = curScore.selection.elements[i];
+                        var chord = note.parent;
+                        var segment = chord.parent;
+                        selectedNotes.push({
+                              "note": note,
+                              "staffNum": getStaffNum(note.staff),
+                              "tick": segment.tick
+                        });
+                  }
+            }
+            return selectedNotes;
+      }
+      
 
+      property var allStaves: []
+      function getStaves() {
+            // This should be simple and easy!  Unfortunately there's a bug in MuseScore 3.
+            if (mscoreMajorVersion < 4) {
+                  // We work around the bug by finding the first BeginBarLine at the start
+                  // of the score, then querying every possible staff looking for a
+                  // BarLine element in the first voice.  If we find one, we can find the
+                  // Staff object from there, and if we don't, we can safely assume that
+                  // no such staff exists.
+                  var cursor = curScore.newCursor();
+                  cursor.filter = Segment.BeginBarLine;
+                  cursor.rewind(Cursor.SCORE_START);
+                  var segment = cursor.segment;
+                  for(var staffNum=0; staffNum < 255; staffNum++) {
+                        var track = staffNum * 4;
+                        var barline = segment.elementAt(track);
+                        if(barline) {
+                              allStaves.push(barline.staff);
+                        } else {
+                              break;
+                        }
+                  }
+                  console.log("Found " + allStaves.length + " staves the hard way");
+            } else {
+                  // If the bug is fixed, do it the easy way.
+                  allStaves = curScore.staves;
+                  console.log("Found " + allStaves.length + " staves the easy way");
+            }
+      }
+      function getStaffNum(myStaff) {
+            for(var i=0; i<allStaves.length; i++) {
+                  if(allStaves[i].is(myStaff)) return i;
+            }
+            console.log("Tried to match a note's staff to the list of known staves in the score, but failed!");
+            return undefined;
+      }
+      
       onRun: {
             // Get current selection, or Select All
             var fullScore = !curScore.selection.elements.length;
@@ -297,69 +353,49 @@ MuseScore {
             }
             curScore.startCmd();
             
-            var allUsed = {
-                  "Handbells": {},
-                  "Handchimes": {},
-                  "Unknown": {}
-            };
-            for(var i in curScore.selection.elements) {
-                  if (curScore.selection.elements[i].type == Element.NOTE) {
-                        var bell = getNote(curScore.selection.elements[i]);
-                        if(!allUsed[bell.bellType][bell.notePitch]) {
-                              allUsed[bell.bellType][bell.notePitch] = {
-                                    "canonicalName": bell.noteCanonicalName,
-                                    "notes": {},
-                                    "count": 0
-                              };
-                        }
-                        allUsed[bell.bellType][bell.notePitch].notes[bell.noteName] = bell.accidentalValue;
-                        allUsed[bell.bellType][bell.notePitch].count++;
-                        if(bell.noteName == bell.noteCanonicalName) {
-                              console.log("Found " + bell.bellType + " note " + bell.noteName);
-                        } else {
-                              console.log("Found " + bell.bellType + " note " + bell.noteName + " (" + bell.noteCanonicalName + ")");
-                        }
-                  }
-            }
-
-            text1.text = ""
-            for(var bellType in allUsed) { // Handbells, Handchimes, and possibly Unknown
-                  var numUsed = Object.keys(allUsed[bellType]).length;
-                  if(numUsed) { // Do any notes exist of this type?
-                        text1.text += bellType + " Used: " + numUsed + "\n";
-                        for(var notePitch in allUsed[bellType]) { // All canonical pitches (natural and sharp only) in chromatic order
-                              var noteNames = Object.keys(allUsed[bellType][notePitch]["notes"]);
-                              if(noteNames.length > 1) {
-                                    // Sort enharmonic equivalents by accidental in order from double-sharp to double-flat
-                                    noteNames.sort (function(a,b) {
-                                          return allUsed[bellType][notePitch]["notes"][b] - allUsed[bellType][notePitch]["notes"][a]
-                                    });
-                                    text1.text += "  ( " + noteNames.join(", ") + " ) [" + allUsed[bellType][notePitch]["count"] + "]\n";
-                              } else {
-                                    // This pitch only has one note name (no enharmonic equivalents)
-                                    text1.text += "  " + noteNames[0] + " [" + allUsed[bellType][notePitch]["count"] + "]\n";
+            // Get a list of all notes within the current selection
+            getStaves();
+            var selectedNotes = getSelectedNotes();
+            if(selectedNotes.length) {
+                  var problems = [];
+                  for(var i in selectedNotes) {
+                        var staffNum = selectedNotes[i]["staffNum"];
+                        var note = selectedNotes[i]["note"];
+                        var chord = note.parent;
+                        var segment = chord.parent;
+                        var measure = segment.parent;
+                        
+                        var bell = getNote(note);
+                        if(!bell.clef) {
+                              problems.push("Found note " + bell.noteName + " in an unknown clef on staff " + (staffNum + 1));
+                        } else if(bell.clef == "Treble") {
+                              if(bell.noteOctave < 5 || (bell.noteOctave == 5 && bell.letterValue < 1)) { // below D5
+                                    note.color = color_BAD;
+                                    problems.push("Found " + bell.noteName + " in " + bell.clef + " clef on staff " + (staffNum + 1));
+                              }
+                        } else if(bell.clef == "Bass") {
+                              if(bell.noteOctave > 5 || (bell.noteOctave == 5 && bell.letterValue > 0)) { // above C5
+                                    note.color = color_BAD;
+                                    problems.push("Found " + bell.noteName + " in " + bell.clef + " clef on staff " + (staffNum + 1));
                               }
                         }
-                        text1.text += "\n";
                   }
-                  
-            }
-            if(text1.text == "") {
+                  if(problems.length) {
+                        if(problems.length == 1) {
+                              text1.text = problems[0] + "\n\n1 problem to fix.";
+                        } else {
+                              text1.text = problems.join("\n") + "\n\n" + problems.length + " problems to fix.";
+                        }
+                        resultsWindow.visible = true;
+                  } else {
+                        showInfo("No problems found.");
+                  }
+            } else {
                   // No notes were found within the selection
                   if(fullScore) {
                         showWarning("No notes were found in the score.");
                   } else {
                         showWarning("Something was selected, but the selection didn't include any notes.  Either select the range of notes to analyze, or be careful not to have anything selected.");
-                  }
-            } else {
-                  bellsUsedWindow.visible = true;
-                  
-                  // Any Unknown notes?
-                  var numUnknown = Object.keys(allUsed["Unknown"]).length;
-                  if(numUnknown==1) {
-                        showInfo("Found a note whose note head is neither Standard nor Diamond.  You may want to change the note head, or exclude it from the selection if it's for a different instrument.");
-                  } else if(numUnknown > 1) {
-                        showInfo("Found " + numUnknown + " notes whose note heads are neither Standard nor Diamond.  You may want to change the note heads, or exclude them from the selection if they're for a different instrument.");
                   }
             }
             
