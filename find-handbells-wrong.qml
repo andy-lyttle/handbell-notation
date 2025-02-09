@@ -25,7 +25,7 @@ import QtQuick.Controls 2.2
 MuseScore {
       version:  "1.0"
       description: "Checks the selected notes to see if any are on the wrong staff for handbells."
-      menuPath: "Plugins.Find Handbells On the Wrong Staff" // Ignored in MuseScore 4
+      menuPath: "Plugins.Handbell Notation.Find Handbells On the Wrong Staff" // Ignored in MuseScore 4
 
       // These special comments are parsed by MuseScore 4.4, but ignored by older versions:
       //4.4 title: "Find Handbells On the Wrong Staff"
