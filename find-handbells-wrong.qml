@@ -21,9 +21,11 @@
 import QtQuick 2.2
 import MuseScore 3.0
 import QtQuick.Controls 2.2
+import "DialogBox.js" as DialogBox
 
 MuseScore {
-      version:  "1.0"
+      id: msParent
+      version:  "1.1"
       description: "Checks the selected notes to see if any are on the wrong staff for handbells."
       menuPath: "Plugins.Handbell Notation.Find Handbells On the Wrong Staff" // Ignored in MuseScore 4
 
@@ -41,78 +43,6 @@ MuseScore {
             }
       }
 
-      // BEGIN: Set up dialog box
-      ApplicationWindow {
-            id: dialogBox
-            visible: false
-            flags: Qt.Dialog | Qt.WindowStaysOnTopHint
-            width: 410
-            height: 160
-            property var text: ""
-            property var icon: ""
-            Label {
-                  text: dialogBox.icon
-                  width: 84;
-                  font.pointSize: 72
-                  horizontalAlignment: Text.AlignHCenter
-                  anchors {
-                        top: parent.top
-                        left: parent.left
-                        margins: 14
-                  }
-            }
-            Label {
-                  id: dialogText
-                  text: dialogBox.text
-                  wrapMode: Text.WordWrap
-                  width: 280
-                  font.pointSize: 16
-                  anchors {
-                        top: parent.top
-                        right: parent.right
-                        margins: 20
-                  }
-            }
-            Button {
-                  text: "Ok"
-                  anchors {
-                        right: parent.right
-                        bottom: parent.bottom
-                        margins: 14
-                  }
-                  onClicked: closeDialog()
-            }
-      }
-      function closeDialog() {
-            dialogBox.close();
-            if(bellsUsedWindow.visible) {
-                  // Closing the dialog causes the bellsUsedWindow to move behind
-                  // the MuseScore window, so we need to bring it back to the front and give it focus
-                  bellsUsedWindow.raise();
-                  bellsUsedWindow.requestActivate();
-            }
-      }
-      function showDialog(title, icon, msg) {
-            dialogBox.title = title;
-            dialogBox.icon = icon;
-            dialogBox.text = msg;
-            if(dialogText.height > 90) {
-                  dialogBox.height = Math.min(600, 90 + dialogText.height);
-            }
-            dialogBox.visible = true;
-      }
-      function showError(msg) {
-            showDialog("Error", "\uD83D\uDED1", msg);
-      }
-      function showWarning(msg) {
-            showDialog("Warning", "\u26A0\uFE0F", msg);
-      }
-      function showInfo(msg) {
-            showDialog("Information", "\u2139\uFE0F", msg);
-      }
-      // END: Set up dialog box
-      
-      // BEGIN: Set up results window
       ApplicationWindow {
             id: resultsWindow
             title: "Handbells On the Wrong Staff"
@@ -133,7 +63,6 @@ MuseScore {
                   }
             }
       }
-      // END: Set up results window
       
       property string u_DOUBLEFLAT: String.fromCharCode(55348,56619) // U+1D12B
       property string u_FLAT: "\u266D"
@@ -386,16 +315,16 @@ MuseScore {
                         } else {
                               text1.text = problems.join("\n") + "\n\n" + problems.length + " problems to fix.";
                         }
-                        resultsWindow.visible = true;
+                        resultsWindow.show();
                   } else {
-                        showInfo("No problems found.");
+                        DialogBox.showInfo("No problems found.");
                   }
             } else {
                   // No notes were found within the selection
                   if(fullScore) {
-                        showWarning("No notes were found in the score.");
+                        DialogBox.showWarning("No notes were found in the score.");
                   } else {
-                        showWarning("Something was selected, but the selection didn't include any notes.  Either select the range of notes to analyze, or be careful not to have anything selected.");
+                        DialogBox.showWarning("Something was selected, but the selection didn't include any notes.  Either select the range of notes to analyze, or be careful not to have anything selected.");
                   }
             }
             
