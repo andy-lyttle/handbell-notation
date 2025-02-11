@@ -23,8 +23,8 @@ import MuseScore 3.0
 import QtQuick.Controls 2.2
 
 MuseScore {
-      version:  "1.0"
-      description: qsTr("Sets the selected notes to use red diamond noteheads. Does not affect playback.")
+      version:  "1.1"
+      description: qsTr("Sets the selected notes to use red diamond noteheads (or whatever color you prefer). Does not affect playback. If no notes are selected, updates the color of all notes with diamond heads.")
       menuPath: "Plugins.Handbell Notation.Set Selected Notes to Handchimes" // Ignored in MuseScore 4
 
       // These special comments are parsed by MuseScore 4.4, but ignored by older versions:
@@ -85,12 +85,6 @@ MuseScore {
       }
       function closeDialog() {
             dialogBox.close();
-            if(bellsUsedWindow.visible) {
-                  // Closing the dialog causes the bellsUsedWindow to move behind
-                  // the MuseScore window, so we need to bring it back to the front and give it focus
-                  bellsUsedWindow.raise();
-                  bellsUsedWindow.requestActivate();
-            }
       }
       function showDialog(title, icon, msg) {
             dialogBox.title = title;
@@ -250,31 +244,84 @@ MuseScore {
       }
       // END: Set up color picker
 
-      function testSanity(note) {
-            if(note.headGroup != NoteHeadGroup.HEAD_DIAMOND && note.headGroup != NoteHeadGroup.HEAD_NORMAL) {
-                  return false;
-            }
-            return true;
-      }
-
-      function updateNote(note) {
+      function changeNote(note) {
             note.headGroup = NoteHeadGroup.HEAD_DIAMOND;
             note.color = curScore.metaTag("handchimesColor");
-            if (note.accidental) {
+            if(note.accidental) {
                   note.accidental.color = curScore.metaTag("handchimesColor");
             }
-            if (note.dots) {
+            if(note.dots) {
                   for (var i = 0; i < note.dots.length; i++) {
                         note.dots[i].color = curScore.metaTag("handchimesColor");
                   }
             }
       }
-      function updateStem(stem) { // also for hooks and beams
+      function changeStem(stem) { // also for hooks and beams
             stem.color = curScore.metaTag("handchimesColor");
+      }
+      function updateExistingNote(note) { 
+            // Existing handchime note already has correct head group, but may need
+            // its color updated, along with associated stem/hook/beam if appropriate
+            var desiredColor = curScore.metaTag("handchimesColor");
+            var anyChanges = false;
+            if(note.color != desiredColor) {
+                  anyChanges = true;
+                  note.color = desiredColor;
+            }
+            if(note.accidental) {
+                  if(note.accidental.color != desiredColor) {
+                        anyChanges = true;
+                        note.accidental.color = desiredColor;
+                  }
+            }
+            if(note.dots) {
+                  for (var i = 0; i < note.dots.length; i++) {
+                        if(note.dots[i].color != desiredColor) {
+                              anyChanges = true;
+                              note.dots[i].color = desiredColor;
+                        }
+                  }
+            }
+            
+            // If all notes in the chord are handchimes, then set the stem and hook color
+            // too, otherwise leave them as-is
+            var chord = note.parent;
+            var allChimes = true;
+            for(var i in chord.notes) {
+                  if(chord.notes[i].headGroup != NoteHeadGroup.HEAD_DIAMOND) allChimes = false;
+            }
+            if(allChimes) {
+                  if(chord.stem && chord.stem.color != desiredColor) {
+                        anyChanges = true;
+                        chord.stem.color = desiredColor;
+                  }
+                  if(chord.hook && chord.hook.color != desiredColor) {
+                        anyChanges = true;
+                        chord.hook.color = desiredColor;
+                  }
+            }
+            
+            // If this chord is beamed, and all notes in all chords on the beam are
+            // handchimes, then set the beam color, otherwise leave it as-is
+            if(allChimes && chord.beam) {
+                  for(i in chord.beam.elements) {
+                        if(!chord.beam.elements[i]) continue;
+                        for(var j in chord.beam.elements[i]) {
+                              var otherNote = chord.beam.elements[i][j];
+                              if(otherNote.type != Element.NOTE) continue;
+                              if(otherNote.headGroup != NoteHeadGroup.HEAD_DIAMOND) allChimes = false;
+                        }
+                  }
+                  if(allChimes && chord.beam.color != desiredColor) {
+                        anyChanges = true;
+                        chord.beam.color = desiredColor
+                  }
+            }
+            
+            return anyChanges;
       }
 
       function setHandchimes() {
-            // Get current selection, or Select All
             var fullScore = !curScore.selection.elements.length;
             if (fullScore) {
                   cmd("select-all");
@@ -282,26 +329,85 @@ MuseScore {
             curScore.startCmd();
       
             // Sanity check: do all selected notes currently have an expected note head group?
-            var numUnknown = 0;
+            var allNotes = {
+                  "Handbells": [],
+                  "Handchimes": [],
+                  "Unknown": []
+            };
             for(var i in curScore.selection.elements) {
-                  if (curScore.selection.elements[i].type == Element.NOTE)
-                        if (!testSanity(curScore.selection.elements[i]))
-                              numUnknown++;
+                  if (curScore.selection.elements[i].type == Element.NOTE) {
+                        var note = curScore.selection.elements[i];
+                        if(note.headGroup == NoteHeadGroup.HEAD_NORMAL) {
+                              allNotes["Handbells"].push(note);
+                        } else if(note.headGroup == NoteHeadGroup.HEAD_DIAMOND) {
+                              allNotes["Handchimes"].push(note);
+                        } else {
+                              allNotes["Unknown"].push(note);
+                        }
+                  }
             }
-            if(numUnknown == 1) {
-                  showError("Found a note whose note head is neither Standard nor Diamond.  Either change the note head, or exclude it from the selection if it's for a different instrument.");
-            } else if(numUnknown > 1) {
-                  showError("Found " + numUnknown + " notes whose note heads are neither Standard nor Diamond.  Either change the note heads, or exclude them from the selection if they're for a different instrument.");
+            
+            if(allNotes["Unknown"].length) {
+                  // Found some notes we don't know what to do with
+                  var x = (allNotes["Unknown"].length == 1) ? "a note that is" : (allNotes["Unknown"].length + " notes that are");
+                  if(fullScore) {
+                        // Nothing was selected
+                        if(allNotes["Unknown"].length == 1) {
+                              showError("Nothing was selected, but the score contains a note that is not recognized as either handbells or handchimes.  Either select the specific range of notes you want to update, or change this note to use a Standard or Diamond note head.");
+                        } else {
+                              showError("Nothing was selected, but the score contains " + allNotes["Unknown"].length + " notes that are not recognized as either handbells or handchimes.  Either select the specific range of notes you want to update, or change these notes to use Standard or Diamond note heads.");
+                        }
+                  } else {
+                        // Notes were selected
+                        if(allNotes["Unknown"].length == 1) {
+                              showError("The selection includes a note that is not recognized as either handbells or handchimes.  Either exclude this note from your selection, or change the note to use a Standard or Diamond note head.");
+                        } else {
+                              showError("The selection includes " + allNotes["Unknown"].length + " notes that are not recognized as either handbells or handchimes.  Either exclude these notes from your selection, or change the notes to use Standard or Diamond note heads.");
+                        }
+                  }
+            } else if(!(allNotes["Handbells"].length + allNotes["Handchimes"].length)) {
+                  // No handbell or handchime notes selected
+                  if(fullScore) {
+                        showWarning("No notes were found in the score.");
+                  } else {
+                        showWarning("Something was selected, but the selection didn't include any notes.  Be careful to select the range of notes you want to update.");
+                  }
+            } else if(fullScore) {
+                  if(!allNotes["Handchimes"].length) {
+                        // Only handbell notes exist
+                        showWarning("All notes in the score are currently set to handbells.  If you really want to change them all to handchimes, please Select All first.  Otherwise, select only the notes you want to change.");
+                  } else {
+                        // Update color of existing handchime notes, plus associated hooks and beams
+                        var updatedCount = 0;
+                        var ignoredCount = 0;
+                        for(var i in allNotes["Handchimes"]) {
+                              if(updateExistingNote(allNotes["Handchimes"][i])) { // also update associated stem, hook and beam if appropriate
+                                    updatedCount++;
+                              } else {
+                                    ignoredCount++;
+                              }
+                        }
+                        if(updatedCount == 1) {
+                              showInfo("Updated one existing handchime note to use your selected color.");
+                        } else if(updatedCount) {
+                              showInfo("Updated " + updatedCount + " existing handchime notes to use your selected color.");
+                        } else if(ignoredCount == 1) {
+                              showWarning("Nothing was selected.  You already have one note set to handchimes, and " + allNotes["Handbells"].length +  " set to handbells.");
+                        } else {
+                              showWarning("Nothing was selected.  You already have " + ignoredCount +  " notes set to handchimes, and " + allNotes["Handbells"].length +  " set to handbells.");
+                        }
+                  }
             } else {
+                  // Selection may include some combination of handbell and handchime notes.
+                  // Even if all selected notes are already set to handchimes, we should
+                  // update the color anyway.  Also update any selected stems, hooks and beams,
+                  // but do not touch any other selected elements such as rests.
                   for(var i in curScore.selection.elements) {
-                        if (curScore.selection.elements[i].type == Element.NOTE)
-                              updateNote(curScore.selection.elements[i]);
-                        if (curScore.selection.elements[i].type == Element.STEM)
-                              updateStem(curScore.selection.elements[i]);
-                        if (curScore.selection.elements[i].type == Element.HOOK)
-                              updateStem(curScore.selection.elements[i]);
-                        if (curScore.selection.elements[i].type == Element.BEAM)
-                              updateStem(curScore.selection.elements[i]);
+                        var e = curScore.selection.elements[i];
+                        if(e.type == Element.NOTE) changeNote(e);
+                        if(e.type == Element.STEM) changeStem(e);
+                        if(e.type == Element.HOOK) changeStem(e);
+                        if(e.type == Element.BEAM) changeStem(e);
                   }
             }
 
