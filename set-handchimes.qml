@@ -21,8 +21,10 @@
 import QtQuick 2.2
 import MuseScore 3.0
 import QtQuick.Controls 2.2
+import "DialogBox.js" as DialogBox
 
 MuseScore {
+      id: msParent
       version:  "1.1"
       description: qsTr("Sets the selected notes to use red diamond noteheads (or whatever color you prefer). Does not affect playback. If no notes are selected, updates the color of all notes with diamond heads.")
       menuPath: "Plugins.Handbell Notation.Set Selected Notes to Handchimes" // Ignored in MuseScore 4
@@ -40,71 +42,6 @@ MuseScore {
                   categoryCode = "composing-arranging-tools";
             }
       }
-
-      // BEGIN: Set up dialog box
-      ApplicationWindow {
-            id: dialogBox
-            visible: false
-            flags: Qt.Dialog | Qt.WindowStaysOnTopHint
-            width: 410
-            height: 160
-            property var text: ""
-            property var icon: ""
-            Label {
-                  text: dialogBox.icon
-                  width: 84;
-                  font.pointSize: 72
-                  horizontalAlignment: Text.AlignHCenter
-                  anchors {
-                        top: parent.top
-                        left: parent.left
-                        margins: 14
-                  }
-            }
-            Label {
-                  id: dialogText
-                  text: dialogBox.text
-                  wrapMode: Text.WordWrap
-                  width: 280
-                  font.pointSize: 16
-                  anchors {
-                        top: parent.top
-                        right: parent.right
-                        margins: 20
-                  }
-            }
-            Button {
-                  text: "Ok"
-                  anchors {
-                        right: parent.right
-                        bottom: parent.bottom
-                        margins: 14
-                  }
-                  onClicked: closeDialog()
-            }
-      }
-      function closeDialog() {
-            dialogBox.close();
-      }
-      function showDialog(title, icon, msg) {
-            dialogBox.title = title;
-            dialogBox.icon = icon;
-            dialogBox.text = msg;
-            if(dialogText.height > 90) {
-                  dialogBox.height = Math.min(600, 90 + dialogText.height);
-            }
-            dialogBox.visible = true;
-      }
-      function showError(msg) {
-            showDialog("Error", "\uD83D\uDED1", msg);
-      }
-      function showWarning(msg) {
-            showDialog("Warning", "\u26A0\uFE0F", msg);
-      }
-      function showInfo(msg) {
-            showDialog("Information", "\u2139\uFE0F", msg);
-      }
-      // END: Set up dialog box
 
       // BEGIN: Set up color picker
       property string color_RED     : "#ff0000"
@@ -353,29 +290,29 @@ MuseScore {
                   if(fullScore) {
                         // Nothing was selected
                         if(allNotes["Unknown"].length == 1) {
-                              showError("Nothing was selected, but the score contains a note that is not recognized as either handbells or handchimes.  Either select the specific range of notes you want to update, or change this note to use a Standard or Diamond note head.");
+                              DialogBox.showError("Nothing was selected, but the score contains a note that is not recognized as either handbells or handchimes.  Either select the specific range of notes you want to update, or change this note to use a Standard or Diamond note head.");
                         } else {
-                              showError("Nothing was selected, but the score contains " + allNotes["Unknown"].length + " notes that are not recognized as either handbells or handchimes.  Either select the specific range of notes you want to update, or change these notes to use Standard or Diamond note heads.");
+                              DialogBox.showError("Nothing was selected, but the score contains " + allNotes["Unknown"].length + " notes that are not recognized as either handbells or handchimes.  Either select the specific range of notes you want to update, or change these notes to use Standard or Diamond note heads.");
                         }
                   } else {
                         // Notes were selected
                         if(allNotes["Unknown"].length == 1) {
-                              showError("The selection includes a note that is not recognized as either handbells or handchimes.  Either exclude this note from your selection, or change the note to use a Standard or Diamond note head.");
+                              DialogBox.showError("The selection includes a note that is not recognized as either handbells or handchimes.  Either exclude this note from your selection, or change the note to use a Standard or Diamond note head.");
                         } else {
-                              showError("The selection includes " + allNotes["Unknown"].length + " notes that are not recognized as either handbells or handchimes.  Either exclude these notes from your selection, or change the notes to use Standard or Diamond note heads.");
+                              DialogBox.showError("The selection includes " + allNotes["Unknown"].length + " notes that are not recognized as either handbells or handchimes.  Either exclude these notes from your selection, or change the notes to use Standard or Diamond note heads.");
                         }
                   }
             } else if(!(allNotes["Handbells"].length + allNotes["Handchimes"].length)) {
                   // No handbell or handchime notes selected
                   if(fullScore) {
-                        showWarning("No notes were found in the score.");
+                        DialogBox.showWarning("No notes were found in the score.");
                   } else {
-                        showWarning("Something was selected, but the selection didn't include any notes.  Be careful to select the range of notes you want to update.");
+                        DialogBox.showWarning("Something was selected, but the selection didn't include any notes.  Be careful to select the range of notes you want to update.");
                   }
             } else if(fullScore) {
                   if(!allNotes["Handchimes"].length) {
                         // Only handbell notes exist
-                        showWarning("All notes in the score are currently set to handbells.  If you really want to change them all to handchimes, please Select All first.  Otherwise, select only the notes you want to change.");
+                        DialogBox.showWarning("All notes in the score are currently set to handbells.  If you really want to change them all to handchimes, please Select All first.  Otherwise, select only the notes you want to change.");
                   } else {
                         // Update color of existing handchime notes, plus associated hooks and beams
                         var updatedCount = 0;
@@ -388,13 +325,13 @@ MuseScore {
                               }
                         }
                         if(updatedCount == 1) {
-                              showInfo("Updated one existing handchime note to use your selected color.");
+                              DialogBox.showInfo("Updated one existing handchime note to use your selected color.");
                         } else if(updatedCount) {
-                              showInfo("Updated " + updatedCount + " existing handchime notes to use your selected color.");
+                              DialogBox.showInfo("Updated " + updatedCount + " existing handchime notes to use your selected color.");
                         } else if(ignoredCount == 1) {
-                              showWarning("Nothing was selected.  You already have one note set to handchimes, and " + allNotes["Handbells"].length +  " set to handbells.");
+                              DialogBox.showWarning("Nothing was selected.  You already have one note set to handchimes, and " + allNotes["Handbells"].length +  " set to handbells.");
                         } else {
-                              showWarning("Nothing was selected.  You already have " + ignoredCount +  " notes set to handchimes, and " + allNotes["Handbells"].length +  " set to handbells.");
+                              DialogBox.showWarning("Nothing was selected.  You already have " + ignoredCount +  " notes set to handchimes, and " + allNotes["Handbells"].length +  " set to handbells.");
                         }
                   }
             } else {

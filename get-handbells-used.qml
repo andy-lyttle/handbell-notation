@@ -21,8 +21,10 @@
 import QtQuick 2.2
 import MuseScore 3.0
 import QtQuick.Controls 2.2
+import "DialogBox.js" as DialogBox
 
 MuseScore {
+      id: msParent
       version:  "1.0"
       description: "Gets a list of handbells or handchimes used within the selection, and presents a list as text.  Does NOT insert a chart into your score, sorry.  NOTE: You must use the mouse to close the window that pops up, not the keyboard."
       menuPath: "Plugins.Handbell Notation.Get Handbells Used" // Ignored in MuseScore 4
@@ -41,78 +43,6 @@ MuseScore {
             }
       }
 
-      // BEGIN: Set up dialog box
-      ApplicationWindow {
-            id: dialogBox
-            visible: false
-            flags: Qt.Dialog | Qt.WindowStaysOnTopHint
-            width: 410
-            height: 160
-            property var text: ""
-            property var icon: ""
-            Label {
-                  text: dialogBox.icon
-                  width: 84;
-                  font.pointSize: 72
-                  horizontalAlignment: Text.AlignHCenter
-                  anchors {
-                        top: parent.top
-                        left: parent.left
-                        margins: 14
-                  }
-            }
-            Label {
-                  id: dialogText
-                  text: dialogBox.text
-                  wrapMode: Text.WordWrap
-                  width: 280
-                  font.pointSize: 16
-                  anchors {
-                        top: parent.top
-                        right: parent.right
-                        margins: 20
-                  }
-            }
-            Button {
-                  text: "Ok"
-                  anchors {
-                        right: parent.right
-                        bottom: parent.bottom
-                        margins: 14
-                  }
-                  onClicked: closeDialog()
-            }
-      }
-      function closeDialog() {
-            dialogBox.close();
-            if(bellsUsedWindow.visible) {
-                  // Closing the dialog causes the bellsUsedWindow to move behind
-                  // the MuseScore window, so we need to bring it back to the front and give it focus
-                  bellsUsedWindow.raise();
-                  bellsUsedWindow.requestActivate();
-            }
-      }
-      function showDialog(title, icon, msg) {
-            dialogBox.title = title;
-            dialogBox.icon = icon;
-            dialogBox.text = msg;
-            if(dialogText.height > 90) {
-                  dialogBox.height = Math.min(600, 90 + dialogText.height);
-            }
-            dialogBox.visible = true;
-      }
-      function showError(msg) {
-            showDialog("Error", "\uD83D\uDED1", msg);
-      }
-      function showWarning(msg) {
-            showDialog("Warning", "\u26A0\uFE0F", msg);
-      }
-      function showInfo(msg) {
-            showDialog("Information", "\u2139\uFE0F", msg);
-      }
-      // END: Set up dialog box
-      
-      // BEGIN: Set up Handbells Used window
       ApplicationWindow {
             id: bellsUsedWindow
             title: "Handbells Used"
@@ -133,7 +63,6 @@ MuseScore {
                   }
             }
       }
-      // END: Set up Handbells Used window
       
       property string u_DOUBLEFLAT: String.fromCharCode(55348,56619) // U+1D12B
       property string u_FLAT: "\u266D"
@@ -288,6 +217,13 @@ MuseScore {
                   "tick": segment.tick
             };
       }
+      function bringToFront() {
+            // Closing the dialog causes the bellsUsedWindow to move behind
+            // the MuseScore window, so we need to bring it back to the front
+            // and give it focus
+            bellsUsedWindow.raise();
+            bellsUsedWindow.requestActivate();
+      }
 
       onRun: {
             // Get current selection, or Select All
@@ -342,24 +278,23 @@ MuseScore {
                         }
                         text1.text += "\n";
                   }
-                  
             }
             if(text1.text == "") {
                   // No notes were found within the selection
                   if(fullScore) {
-                        showWarning("No notes were found in the score.");
+                        DialogBox.showWarning("No notes were found in the score.");
                   } else {
-                        showWarning("Something was selected, but the selection didn't include any notes.  Either select the range of notes to analyze, or be careful not to have anything selected.");
+                        DialogBox.showWarning("Something was selected, but the selection didn't include any notes.  Either select the range of notes to analyze, or be careful not to have anything selected.");
                   }
             } else {
-                  bellsUsedWindow.visible = true;
+                  bellsUsedWindow.show();
                   
                   // Any Unknown notes?
                   var numUnknown = Object.keys(allUsed["Unknown"]).length;
                   if(numUnknown==1) {
-                        showInfo("Found a note whose note head is neither Standard nor Diamond.  You may want to change the note head, or exclude it from the selection if it's for a different instrument.");
+                        DialogBox.showInfo("Found a note whose note head is neither Standard nor Diamond.  You may want to change the note head, or exclude it from the selection if it's for a different instrument.", bringToFront);
                   } else if(numUnknown > 1) {
-                        showInfo("Found " + numUnknown + " notes whose note heads are neither Standard nor Diamond.  You may want to change the note heads, or exclude them from the selection if they're for a different instrument.");
+                        DialogBox.showInfo("Found " + numUnknown + " notes whose note heads are neither Standard nor Diamond.  You may want to change the note heads, or exclude them from the selection if they're for a different instrument.", bringToFront);
                   }
             }
             
