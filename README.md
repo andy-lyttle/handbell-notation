@@ -81,25 +81,25 @@ doing something weird, but so far it works correctly in my testing.
 
 <img src="set-handbells.png" alt="set-handbells" width=256>   
 
-Changes the note head for all of the selected notes (or all notes in the score
-if nothing is selected) to standard, and sets the color to black.  This is intended
-for changing handchime notes to handbells.
+Changes all selected notes to use standard note heads, and sets the color to black.
+This is intended for changing handchime notes to handbells.
 
 Dots and accidentals belonging to the selected notes will also be updated, but
 stems, hooks and beams will only be updated if they are included in the selection.
 They will be included if you select a range, but not if you select only individual
 note heads.  Rests and other elements, even if selected, will be ignored.
 
-If any of the selected notes use some note head other that standard or diamond,
+If any of the selected notes use some note head other than standard or diamond,
 you'll get an error; fix these manually, or exclude them from your selection.
+
+If nothing is selected, you'll get an error.
 
 ### Set Selected Notes to Handchimes
 
 <img src="set-handchimes.png" alt="set-handchimes" width=256>
 
-Changes the note head for all of the selected notes (or all notes in the score
-if nothing is selected) to diamond, and sets the color to red (if you like).
-This is intended for changing handbell notes to handchimes.
+Changes all selected notes to use diamond note heads, and sets the color to red
+(if you want).  This is intended for changing handbell notes to handchimes.
 
 The first time you use the plugin in a particular score, you will be asked to
 choose your preferred color.  Bright red is best for printing (it looks different
@@ -114,8 +114,13 @@ stems, hooks and beams will only be updated if they are included in the selectio
 They will be included if you select a range, but not if you select only individual
 note heads.  Rests and other elements, even if selected, will be ignored.
 
-If any of the selected notes use some note head other that standard or diamond,
+If any of the selected notes use some note head other than standard or diamond,
 you'll get an error; fix these manually, or exclude them from your selection.
+
+If nothing is selected, all existing handchime notes in the score will have their
+color updated to match your preference, without changing any note heads.  When
+doing this, stems and beams will also be updated, but only if all notes that share
+the stem or beam are handchimes.
 
 ## Version compatibility
 
