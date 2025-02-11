@@ -25,7 +25,7 @@ import "DialogBox.js" as DialogBox
 
 MuseScore {
       id: msParent
-      version:  "1.0"
+      version:  "1.1"
       description: "Gets a list of handbells or handchimes used within the selection, and presents a list as text.  Does NOT insert a chart into your score, sorry.  NOTE: You must use the mouse to close the window that pops up, not the keyboard."
       menuPath: "Plugins.Handbell Notation.Get Handbells Used" // Ignored in MuseScore 4
 

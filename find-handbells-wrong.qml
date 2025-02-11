@@ -25,7 +25,7 @@ import "DialogBox.js" as DialogBox
 
 MuseScore {
       id: msParent
-      version:  "1.0"
+      version:  "1.1"
       description: "Checks the selected notes to see if any are on the wrong staff for handbells."
       menuPath: "Plugins.Handbell Notation.Find Handbells On the Wrong Staff" // Ignored in MuseScore 4
 
