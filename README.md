@@ -44,10 +44,12 @@ Does not insert an actual Handbells Used chart at the beginning of your score.
 I may explore the feasibility of doing so in a future version, but for now it
 just gives you a list as text.
 
-Unfortunately the normal keyboard shortcut to close a window (⌘W on Mac, Ctrl-W
-on Windows/Linux) does *not* close the Handbells Used window, and will instead
-close your score.  Use the mouse to click the close button.  (Developers, let me
-know if you know of a way to fix this.)
+Unfortunately there is currently no way to copy the text out of this window.
+You can take a screen shot if you want, but you can't copy the text to paste
+it into something else.  Also, you'll have to use the mouse to close the window;
+the normal keyboard shortcut to close a window (⌘W on Mac, Ctrl-W on
+Windows/Linux) does not close the Handbells Used window, and will instead try to
+close your score.
 
 Be careful to select the complete range you want to analyze (or make sure nothing
 is selected).  If you have a bells used chart at the beginning of your score, you
