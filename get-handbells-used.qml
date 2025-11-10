@@ -25,7 +25,7 @@ import "DialogBox.js" as DialogBox
 
 MuseScore {
       id: msParent
-      version:  "1.1"
+      version:  "1.2"
       description: "Gets a list of handbells or handchimes used within the selection, and presents a list as text.  Does NOT insert a chart into your score, sorry.  NOTE: You must use the mouse to close the window that pops up, not the keyboard."
       menuPath: "Plugins.Handbell Notation.Get Handbells Used" // Ignored in MuseScore 4
 
@@ -48,10 +48,46 @@ MuseScore {
             title: "Handbells Used"
             width: 600
             height: 500
+            color: "#cccccc"
+            
+            Timer {
+                  // After a three-second delay, revert the copyButton text to its original value
+                  id: buttonTimer
+                  interval: 3000
+                  repeat: false
+                  onTriggered: {
+                        copyButton.text = String.fromCharCode(55357, 56516) + " Copy" // U+1F4C4
+                  }
+            }
+            
+            Button {
+                  id: copyButton
+                  text: String.fromCharCode(55357, 56516) + " Copy" // U+1F4C4
+                  background: Rectangle {
+                        color: "#ffffff"
+                  }
+                  height: 34
+                  anchors {
+                        top: parent.top
+                        right: parent.right
+                        margins: 4
+                  }
+                  onClicked: {
+                        text1.selectAll();
+                        text1.copy();
+                        text1.deselect();
+                        copyButton.text = "\u2713 Copied!";
+                        buttonTimer.start();
+                  }
+            }
 
             ScrollView {
                   id: view1
                   anchors.fill: parent
+                  anchors.topMargin: 42
+                  background: Rectangle {
+                        color: "#ffffff"
+                  }
                   TextArea {
                         id: text1
                         text: ""
