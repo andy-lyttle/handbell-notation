@@ -42,18 +42,16 @@ is selected, and produces a list of handbells and handchimes used.
 
 Does not insert an actual Handbells Used chart at the beginning of your score.
 I may explore the feasibility of doing so in a future version, but for now it
-just gives you a list as text.
+just gives you a list as text.  To copy the text, click the Copy button.
 
-Unfortunately there is currently no way to copy the text out of this window.
-You can take a screen shot if you want, but you can't copy the text to paste
-it into something else.  Also, you'll have to use the mouse to close the window;
-the normal keyboard shortcut to close a window (⌘W on Mac, Ctrl-W on
-Windows/Linux) does not close the Handbells Used window, and will instead try to
-close your score.
+Note that normal keyboard shortcuts do not work, including ⌘C (Mac) or Ctrl-C
+(Windows/Linux) to copy, or ⌘W (Mac) or Ctrl-W (Windows/Linux) to close the
+window.  You'll have to use the mouse to close the window, as pressing the
+usual keyboard shortcut will try to close your score.
 
 Be careful to select the complete range you want to analyze (or make sure nothing
-is selected).  If you have a bells used chart at the beginning of your score, you
-should exclude it from your selection.
+is selected).  If you already have a bells used chart at the beginning of your
+score, you should exclude it from your selection.
 
 #### Handbells vs. Handchimes
 

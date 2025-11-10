@@ -13,6 +13,11 @@
  * import MuseScore 3.0
  * import QtQuick.Controls 2.2
  * import "DialogBox.js" as DialogBox
+ *
+ * MuseScore {
+ *       id: msParent
+ *       ...
+ * }
  * 
  * DialogBox.showInfo("Text goes here.", function(btn) {
  *       if(btn) {
@@ -102,7 +107,7 @@ function showDialog(title, icon, msg, callback) {
       qmlText += '}' + "\n";
 
       // Use the above text blob to create our QML objects.  The ApplicationWindow is
-      // returned, which we store in a global variable so we can reference it later.
+      // returned.
       var appwin = Qt.createQmlObject(qmlText, msParent, "DialogBox.js");
       
       // Set some dynamic properties based on the parameters we were passed
@@ -143,7 +148,7 @@ function showDialog(title, icon, msg, callback) {
       };
       
       // Everything is set up, so finally we show the window
-      appwin.visible = true;
+      appwin.show();
       
       // Sometimes MuseScore 3 doesn't focus the window, so do that manually
       appwin.raise();
