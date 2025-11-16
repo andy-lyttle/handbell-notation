@@ -48,10 +48,46 @@ MuseScore {
             title: "Handbells On the Wrong Staff"
             width: 600
             height: 500
+            color: "#cccccc"
+
+            Timer {
+                  // After a three-second delay, revert the copyButton text to its original value
+                  id: buttonTimer
+                  interval: 3000
+                  repeat: false
+                  onTriggered: {
+                        copyButton.text = String.fromCharCode(55357, 56516) + " Copy" // U+1F4C4
+                  }
+            }
+            
+            Button {
+                  id: copyButton
+                  text: String.fromCharCode(55357, 56516) + " Copy" // U+1F4C4
+                  background: Rectangle {
+                        color: "#ffffff"
+                  }
+                  height: 34
+                  anchors {
+                        top: parent.top
+                        right: parent.right
+                        margins: 4
+                  }
+                  onClicked: {
+                        text1.selectAll();
+                        text1.copy();
+                        text1.deselect();
+                        copyButton.text = "\u2713 Copied!";
+                        buttonTimer.start();
+                  }
+            }
 
             ScrollView {
                   id: view1
                   anchors.fill: parent
+                  anchors.topMargin: 42
+                  background: Rectangle {
+                        color: "#ffffff"
+                  }
                   TextArea {
                         id: text1
                         text: ""
